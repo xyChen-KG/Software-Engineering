@@ -1,0 +1,79 @@
+{
+  "selected_ui_directory": "/Users/xingyuchen/Desktop/软件工程/lab2/实验2_241220058_陈星宇/UI界面",
+  "files": [
+    {
+      "file": "01_账本列表与创建账本.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "1fcd5d943d6391085e399e8369598c4cf851a74e62c85fe737d1809b70502c4f"
+    },
+    {
+      "file": "02_账本首页与预算概况.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "7ecd182c51cb791d222f9feb2d1e41fc8330ffa54e4a43b1b81788db8e7ac0bf"
+    },
+    {
+      "file": "03_收支登记与凭证上传.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "b7a073369b53e5c80c6e043a92ea558a34bb2e8474aae44b4cbacacf84dab200"
+    },
+    {
+      "file": "04_记录详情与更正作废申请.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "f76e54cf1de673de1bc7bca317c0c456a836dbaac041bc2cb50b95c2769f7903"
+    },
+    {
+      "file": "05_审核中心.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "b1369f2ec2178237940b37f8d941f6f4354a1a219d77ad73e568a8ffa0e574ec"
+    },
+    {
+      "file": "06_查询与统计.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "de552a54c9ed867c960d9d18d079c518914be359fa25c23eef10709528c3e446"
+    },
+    {
+      "file": "07_成员与权限管理.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "4b44c3e795471a1063d14da89673cd44c8d88a1bc4cb44b576b3e998d8a704fa"
+    },
+    {
+      "file": "08_结算清单.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "87829e9d74d3b760a4638fa177c04a3966ca12713530d6816c7bcc495a4ad342"
+    },
+    {
+      "file": "09_操作日志.png",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "sha256": "cae89933ca16457eab2047d701ea7b6774126734cdd9f13b6bf76bd48b88eadd"
+    }
+  ],
+  "originals_directory": "原始生成",
+  "revised_directory": "修正后"
+}

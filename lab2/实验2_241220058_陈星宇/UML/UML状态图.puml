@@ -1,0 +1,44 @@
+@startuml
+' 依据 REQ-004、REQ-005、REQ-008、REQ-015 及 INT-01-L016。
+!pragma layout smetana
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "PingFang SC"
+skinparam defaultFontSize 14
+skinparam titleFontSize 18
+skinparam noteFontSize 12
+skinparam dpi 150
+top to bottom direction
+title 多人共享记账系统：收支记录状态图
+
+state "待审核" as Pending
+state "已通过" as Approved
+state "已驳回" as Rejected
+state "已撤回" as Withdrawn
+state "已作废" as Voided
+
+[*] --> Pending : 合法提交并保存成功
+Pending --> Approved : 他人审核通过\n[负责人或审核员]
+Pending --> Rejected : 他人驳回\n[驳回原因非空]
+Pending --> Withdrawn : 本人撤回\n[填写撤回原因]
+Rejected --> Pending : 本人修改后重提\n[沿用原编号，重新校验]
+Approved -left-> Approved : 更正申请通过\n/ 生效新版本，保留历史
+Approved --> Voided : 作废申请通过\n/ 停止计入汇总，保留历史
+
+Pending : 不计入正式汇总
+Approved : 当前版本计入汇总与结算
+Rejected : 可修改后重提
+Withdrawn : 保留撤回历史
+Voided : 不计入汇总，历史可查
+
+
+
+legend left
+  申请单独保存待处理、已通过、已驳回状态；待处理或驳回时原记录仍有效。
+  仅原提交人或负责人可申请；申请人不能自审；每条记录最多一个待处理申请。
+  所有转换先校验权限和并发版本；失败时状态不变。
+  已通过记录禁止直接修改或删除，也不能直接退回待审核。
+  仅展示本轮已定义的转换。
+endlegend
+@enduml

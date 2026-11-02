@@ -1,0 +1,62 @@
+@startuml
+!pragma layout smetana
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "PingFang SC"
+skinparam defaultFontSize 14
+skinparam titleFontSize 18
+skinparam noteFontSize 12
+skinparam dpi 150
+title 多人共享记账系统：收支登记与审核活动图
+' 重点展示登记、审核与驳回重提；撤回、更正、作废见状态图。
+
+|提交人|
+start
+repeat
+  :填写或修改收支、分摊和凭证\n按预算提醒补充超支原因;
+  |系统|
+  :按顺序检查：身份权限、请求编号去重\n新请求再校验金额、分摊、退款、凭证及超支说明;
+  switch (提交检查结果)
+  case (不合法)
+    :提示具体错误，阻止提交;
+    stop
+  case (同一请求已处理)
+    :返回原记录及当前状态;
+    stop
+  case (新请求有效)
+  endswitch
+  if (疑似重复记账？) then (是)
+    |提交人|
+    :确认是不同业务并补充说明;
+    if (确认且已说明？) then (是)
+    else (否)
+      stop
+    endif
+  endif
+  |系统|
+  :事务保存待审核记录及日志\n重提沿用原编号并检查并发版本;
+  if (保存成功？) then (是)
+  else (否)
+    :回滚，冲突时提示查看最新记录;
+    stop
+  endif
+  |审核人|
+  :查看收支、凭证和历史\n选择通过或驳回，驳回须填原因;
+  |系统|
+  :校验审核权限、禁止自审\n按状态和并发版本事务保存结果与日志;
+  if (审核处理成功？) then (是)
+  else (否)
+    :回滚并提示失败\n冲突日志单独保存;
+    stop
+  endif
+  if (审核结果为通过？) then (是)
+    :状态为已通过\n纳入正式汇总、预算与结算;
+    stop
+  else (否)
+    :状态为已驳回\n保留原因和旧版本，不计入汇总;
+  endif
+  |提交人|
+repeat while (修改后重新提交？) is (是) not (否)
+stop
+@enduml

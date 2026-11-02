@@ -1,0 +1,133 @@
+@startuml
+!pragma layout smetana
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "PingFang SC"
+skinparam defaultFontSize 14
+skinparam titleFontSize 18
+skinparam noteFontSize 12
+skinparam dpi 150
+hide circle
+skinparam classAttributeIconSize 0
+top to bottom direction
+title 多人共享记账系统：核心领域类图
+' 依据 REQ-001 至 REQ-013、REQ-015、REQ-016；展示核心属性和方法。
+
+class "用户" as User {
+  - 用户编号 : UUID
+  - 姓名 : String
+  + 查看已加入账本()
+}
+class "账本" as Ledger {
+  - 账本编号 : UUID
+  - 名称 : String
+  - 预算分 : Long
+  - 已归档 : Boolean
+  + 管理成员与预算()
+  + 计算汇总与结算()
+}
+class "成员关系" as Member {
+  - 成员关系编号 : UUID
+  - 角色 : 负责人 / 审核员 / 普通成员
+  - 状态 : 在册 / 已退出
+  + 校验操作权限()
+  + 退出或移除()
+}
+class "收支记录" as Entry {
+  - 记录编号 : UUID
+  - 请求编号 : UUID
+  - 提交成员编号 : UUID
+  - 类型 : 收支类型
+  - 状态 : 记录状态
+  - 当前内容版本号 : Integer
+  - 并发版本号 : Integer
+  - 原支出编号 : UUID [0..1]
+  + 修改或重提()
+  + 撤回()
+  + 应用审核结果()
+}
+class "记录版本" as Version {
+  - 内容版本号 : Integer
+  - 金额分 : Long
+  - 类别 : String
+  - 用途 : String
+  - 业务日期 : Date
+  - 垫付或收款成员编号 : UUID
+  - 无凭证说明 : String
+  + 校验金额与分摊()
+}
+class "分摊明细" as Split {
+  - 承担成员编号 : UUID
+  - 承担金额分 : Long
+  + 校验承担金额()
+}
+class "凭证附件" as Attachment {
+  - 附件编号 : UUID
+  - 文件名称 : String
+  - 存储位置 : String
+  - 上传时间 : DateTime
+  + 获取附件()
+}
+class "变更申请" as Change {
+  - 申请编号 : UUID
+  - 申请成员编号 : UUID
+  - 类型 : 更正 / 作废
+  - 状态 : 待处理 / 已通过 / 已驳回
+  - 原因 : String
+  - 拟更正内容及凭证 : 结构化数据
+  - 基准内容版本号 : Integer
+  + 提交申请()
+  + 应用处理结果()
+}
+class "审核记录" as Review {
+  - 审核成员编号 : UUID
+  - 对象内容版本号 : Integer
+  - 结果 : 通过 / 驳回
+  - 原因 : String
+  - 审核时间 : DateTime
+  + 校验非本人审核()
+}
+class "操作日志" as Log {
+  - 操作成员编号 : UUID
+  - 对象编号 : UUID
+  - 操作类型 : String
+  - 前后内容及原因 : String
+  - 操作时间 : DateTime
+  + 按条件查询()
+}
+class "线下结清记录" as Settlement {
+  - 金额分 : Long
+  - 方向 : 应收 / 应补
+  - 结清时间 : DateTime
+  - 经办成员编号 : UUID
+  + 登记结清()
+}
+
+User "1" -down- "0..*" Member : 对应
+Ledger "1" *-down- "1..*" Member : 拥有
+Ledger "1" *-down- "0..*" Entry : 包含
+Ledger "1" -right- "0..*" Log : 操作历史
+Member "1" -down- "0..*" Settlement : 结清对象
+Entry "1" *-down- "1..*" Version : 保存版本
+Version "1" *-down- "0..*" Split : 支出分摊
+Version "1" *-down- "0..*" Attachment : 凭证
+Entry "1" -right- "0..*" Change : 变更申请
+Entry "1" -down- "0..*" Review : 审核历史
+Change "0..1" -down- "0..*" Review : 申请审核
+
+' 只约束排版，不表示业务关系。
+User -[hidden]right-> Ledger
+Member -[hidden]right-> Entry
+Settlement -[hidden]right-> Version
+Version -[hidden]right-> Review
+Split -[hidden]right-> Attachment
+
+legend left
+  成员角色按账本分配；所有成员编号均引用本账本成员关系。
+  退款收入通过原支出编号关联原记录；金额单位为整数“分”。
+  同一记录最多一个待处理申请；申请待审或驳回时原版本有效。
+  统计与结算只读已通过记录的当前版本；旧版本及凭证保留。
+  线下结清单独登记，不新增收支；成员退出不删除历史和欠款。
+endlegend
+@enduml

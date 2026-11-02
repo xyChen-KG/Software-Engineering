@@ -1,0 +1,69 @@
+@startuml
+' 重点交互：收支审核；统一请求入口的技术转发不单列为生命线。
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "PingFang SC"
+skinparam defaultFontSize 14
+skinparam titleFontSize 18
+skinparam noteFontSize 12
+skinparam sequenceMessageAlign center
+skinparam dpi 150
+hide footbox
+title 多人共享记账系统：收支审核时序图
+autonumber
+
+actor "审核人\n负责人或审核员" as Person
+boundary "网页界面" as UI
+control "账本与成员模块" as Member
+control "审核与变更模块" as Review
+control "收支与凭证模块" as Entry
+control "日志模块" as Log
+database "数据库" as DB
+
+Person -> UI : 选择通过或驳回
+UI -> Review : 经统一入口提交审核请求\n记录编号、并发版本、结果及原因
+Review -> Member : 校验在册身份及审核权限
+Member --> Review : 权限校验结果
+break 非成员、已退出或无审核权限
+  Review --> UI : 拒绝操作并提示权限错误
+end
+
+Review -> Entry : 读取记录及当前版本
+Entry --> Review : 状态、提交人和版本
+break 记录不存在、自审、状态非法或驳回未填原因
+  Review --> UI : 返回错误，记录不变
+end
+
+group 审核处理：业务写入使用数据库事务
+  Review -> DB : BEGIN
+  Review -> Entry : 按待审状态和并发版本更新
+  Entry -> DB : 条件更新状态、并发版本加一\nWHERE 状态=待审核 AND 版本=提交版本
+  DB --> Entry : 受影响行数
+  Entry --> Review : 更新结果
+
+  alt 更新行数为零：记录已变化
+    Review -> DB : ROLLBACK
+    Review -> Log : 记录本次冲突（独立事务）
+    Log -> DB : 保存人员、时间、对象和操作类型
+    Review --> UI : 提示刷新并查看最新状态
+  else 条件更新成功
+    Review -> DB : 保存审核历史及原因
+    Review -> Log : 记录审核操作（同一事务）
+    Log -> DB : 保存操作人、前后状态及原因
+    alt 全部写入成功
+      Review -> DB : COMMIT
+      Review --> UI : 审核完成，返回最新状态
+    else 任一写入失败
+      Review -> DB : ROLLBACK
+      Review --> UI : 审核失败，未产生部分更新
+    end
+  end
+end
+
+UI --> Person : 展示处理结果
+note over Review, DB
+  成功提交后，统计、预算及结算统一读取有效记录；
+  驳回记录不计入正式汇总，重试不重复累加金额。
+end note
+@enduml

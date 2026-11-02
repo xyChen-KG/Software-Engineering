@@ -1,0 +1,62 @@
+@startuml
+!pragma layout smetana
+skinparam monochrome true
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName "PingFang SC"
+skinparam defaultFontSize 14
+skinparam titleFontSize 18
+skinparam noteFontSize 12
+skinparam dpi 150
+skinparam componentStyle uml2
+top to bottom direction
+title 多人共享记账系统：组件图
+
+package "界面层" {
+  component "网页界面\n电脑 / 手机浏览器" as UI
+}
+component "统一请求入口\n权限拦截 / 请求分发" as API
+package "业务层：六个模块集中部署" as Business {
+  component "账本与成员\n账本 / 角色 / 退出" as Member
+  component "审核与变更\n审核 / 撤回 / 申请" as Review
+  component "结算\n应收应补 / 线下结清" as Settlement
+  component "查询统计与预算\n筛选 / 汇总 / 预算提醒" as Query
+  component "收支与凭证\n金额 / 分摊 / 退款 / 去重" as Entry
+  component "操作日志\n留痕 / 查询" as Log
+}
+package "数据层" {
+  component "数据访问组件\n查询 / 条件更新 / 事务" as Store
+  database "关系型数据库\n业务数据 / 历史 / 日志" as DB
+  folder "凭证文件存储" as Files
+}
+
+UI -down-> API : 业务请求 / 结果
+API --> Member : 每次请求校验身份与权限
+API --> Business : 调用对应业务模块
+
+Review -down-> Entry : 读取记录 / 应用审核变更
+Query -right-> Entry
+Settlement ..> Entry : 读取垫付与分摊
+Member ..> Review : 退出时交接待审记录
+Member ..> Log : 权限变更
+Review ..> Log : 审核及冲突
+Entry -right-> Log : 登记及修改
+Settlement -down-> Log : 登记结清
+
+Business -down-> Store
+Store -down-> DB : 持久化 / 读取
+Entry --> Files : 保存 / 读取附件
+
+' 排版约束。
+Member -[hidden]right-> Review
+Review -[hidden]right-> Settlement
+Member -[hidden]down-> Query
+Store -[hidden]right-> Files
+
+legend left
+  请求入口校验身份与角色，业务模块检查对象权限、禁止自审及状态版本。
+  各模块统一通过数据访问组件持久化；审核、变更及业务日志使用同一事务。
+  查询统计与结算模块从收支模块读取有效记录。
+  凭证文件独立存储，数据库保存文件位置和记录版本的关联。
+endlegend
+@enduml
